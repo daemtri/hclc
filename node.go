@@ -7,6 +7,7 @@ import (
 	"sort"
 	"strconv"
 	"strings"
+	"time"
 
 	"github.com/hashicorp/hcl/hcl/ast"
 	"github.com/hashicorp/hcl/hcl/token"
@@ -296,6 +297,20 @@ func encodeStruct(in reflect.Value) (ast.Node, *ast.ObjectKey, error) {
 // tokenize converts a primitive type into an token.Token. IDENT tokens (unquoted strings)
 // can be optionally triggered for any string types.
 func tokenize(in reflect.Value, ident bool) (t token.Token, err error) {
+	if in.Type() == timeType {
+		return token.Token{
+			Type: token.STRING,
+			Text: fmt.Sprintf(`"%s"`, in.Interface().(time.Time).Format(time.RFC3339)),
+		}, nil
+	}
+
+	if in.Type() == durationType {
+		return token.Token{
+			Type: token.STRING,
+			Text: fmt.Sprintf(`"%s"`, in.Interface().(time.Duration).String()),
+		}, nil
+	}
+
 	switch in.Kind() {
 	case reflect.Bool:
 		return token.Token{
