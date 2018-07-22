@@ -104,6 +104,8 @@ func (d *decoder) decode(name string, node ast.Node, result reflect.Value) error
 		return d.decodeFloat(name, node, result)
 	case reflect.Int, reflect.Int32, reflect.Int64:
 		return d.decodeInt(name, node, result)
+	case reflect.Uint, reflect.Uint32, reflect.Uint64:
+		return d.decodeUint(name, node, result)
 	case reflect.Interface:
 		// When we see an interface, we make our own thing
 		return d.decodeInterface(name, node, result)
@@ -248,6 +250,43 @@ func (d *decoder) decodeInt(name string, node ast.Node, result reflect.Value) er
 				result.Set(reflect.ValueOf(int(v)))
 			} else {
 				result.SetInt(v)
+			}
+			return nil
+		}
+	}
+
+	return &parser.PosError{
+		Pos: node.Pos(),
+		Err: fmt.Errorf("%s: unknown type %T", name, node),
+	}
+}
+
+func (d *decoder) decodeUint(name string, node ast.Node, result reflect.Value) error {
+	switch n := node.(type) {
+	case *ast.LiteralType:
+		switch n.Token.Type {
+		case token.NUMBER:
+			v, err := strconv.ParseUint(n.Token.Text, 0, 0)
+			if err != nil {
+				return err
+			}
+
+			if result.Kind() == reflect.Interface {
+				result.Set(reflect.ValueOf(uint(v)))
+			} else {
+				result.SetUint(v)
+			}
+			return nil
+		case token.STRING:
+			v, err := strconv.ParseUint(n.Token.Value().(string), 0, 0)
+			if err != nil {
+				return err
+			}
+
+			if result.Kind() == reflect.Interface {
+				result.Set(reflect.ValueOf(uint(v)))
+			} else {
+				result.SetUint(v)
 			}
 			return nil
 		}
