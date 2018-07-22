@@ -99,12 +99,12 @@ func (f *File) Get(key string, value interface{}) error {
 		return fmt.Errorf("section %s set multi times", key)
 	}
 
-	return hcl.DecodeObject(value, ret.Items[0])
+	return DecodeObject(value, ret.Items[0])
 }
 
 // GetList 映射配置到结构体之中
 func (f *File) GetList(value interface{}) error {
-	return hcl.DecodeObject(value, f.List)
+	return DecodeObject(value, f.List)
 }
 
 // SetList 映射到列表之中
